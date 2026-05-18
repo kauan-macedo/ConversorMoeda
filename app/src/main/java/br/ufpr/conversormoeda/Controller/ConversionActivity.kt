@@ -6,6 +6,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import br.ufpr.conversormoeda.R
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class ConversionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,5 +19,28 @@ class ConversionActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://economia.awesomeapi.com.br/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        api = retrofit.create(AwesomeAPI::class.java)
     }
+
+    suspend fun getCotacao(par: String): Double? {
+    return try {
+        val response = api.getCotacao(par)
+        val chave = par.replace("-", "")
+
+        if (response.isSuccessful) {
+            response.body()?.get(chave)?.ask?.toDouble()
+        } else {
+            null
+        }
+    } catch (e: Exception) {
+        null
+    }
+}
+
 }
