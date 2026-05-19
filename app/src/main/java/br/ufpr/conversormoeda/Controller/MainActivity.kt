@@ -17,6 +17,10 @@ class MainActivity : AppCompatActivity() {
 
     var wallet: Wallet = Wallet()
 
+    private lateinit var reaisView: TextView
+    private lateinit var dolaresView: TextView
+    private lateinit var bitcoinsView: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -27,20 +31,22 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        val converterBtn: Button = findViewById<Button>(R.id.converterBtn)
+        reaisView = findViewById(R.id.reaisView)
+        dolaresView = findViewById(R.id.dolaresView)
+        bitcoinsView = findViewById(R.id.bitcoinsView)
+        val converterBtn: Button = findViewById(R.id.converterBtn)
 
         converterBtn.setOnClickListener {
             converter()
         }
 
-        var reaisView: TextView = findViewById<TextView>(R.id.reaisView)
-        var dolaresView: TextView = findViewById<TextView>(R.id.dolaresView)
-        var bitcoinsView: TextView = findViewById<TextView>(R.id.bitcoinsView)
+        atualizarInterface()
+    }
 
+    private fun atualizarInterface() {
         reaisView.text = DecimalFormat("#0.00").format(wallet.reais)
         dolaresView.text = DecimalFormat("#0.00").format(wallet.dolares)
         bitcoinsView.text = DecimalFormat("#0.000000").format(wallet.bitcoins)
-
     }
 
     fun converter() {
@@ -54,10 +60,11 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if(requestCode == 100 && resultCode == RESULT_OK) {
-            wallet.reais = data?.getDoubleExtra("reais", -0.1) ?: 0.1
-            wallet.dolares = data?.getDoubleExtra("dolares", -0.1) ?: -0.1
-            wallet.bitcoins = data?.getDoubleExtra("bitcoins", -0.1) ?: -0.1
+        if(requestCode == 100 && resultCode == RESULT_OK && data != null) {
+            wallet.reais = data.getDoubleExtra("reais", wallet.reais)
+            wallet.dolares = data.getDoubleExtra("dolares", wallet.dolares)
+            wallet.bitcoins = data.getDoubleExtra("bitcoins", wallet.bitcoins)
+            atualizarInterface()
         }
     }
 }

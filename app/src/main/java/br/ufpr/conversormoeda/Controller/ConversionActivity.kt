@@ -70,10 +70,21 @@ class ConversionActivity : AppCompatActivity() {
     fun btnConverter(view: View) {
         val moedaOrigem  = spinnerSource.selectedItem.toString()
         val moedaDestino = spinnerTarget.selectedItem.toString()
+
+        val textValue = etValue.text.toString()
+        if (textValue.isEmpty()) {
+            Toast.makeText(this, "Informe um valor.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val valorAConverter = textValue.toDouble()
+
+        if (moedaOrigem == moedaDestino) {
+            Toast.makeText(this, "Escolha moedas diferentes.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val par = "$moedaOrigem-$moedaDestino"
-
-        val valorAConverter = etValue.text.toString().toDouble()
-
         val walletOrigem  = when (moedaOrigem)  { "BRL" -> walletReais; "USD" -> walletDolares; else -> walletBitcoins }
         val walletDestino = when (moedaDestino) { "BRL" -> walletReais; "USD" -> walletDolares; else -> walletBitcoins }
 
@@ -86,6 +97,10 @@ class ConversionActivity : AppCompatActivity() {
             Toast.makeText(this, "Saldo insuficiente.", Toast.LENGTH_SHORT).show()
             return
         }
+
+        val moedas = par.split("-")
+        val moedaOrigem = moedas[0]
+        val moedaDestino = moedas[1]
 
         progressBar.visibility = View.VISIBLE
 
@@ -102,7 +117,11 @@ class ConversionActivity : AppCompatActivity() {
                 val chave = parChamada.replace("-", "")
 
                 if (response.isSuccessful) {
-                    val ask = response.body()?.get(chave)?.ask?.toDouble() ?: return@launch
+                    val body = response.body()
+                    Log.i("Cotacao", "Resposta API: $body")
+                    
+                    val ask = body?.get(chave)?.ask?.toDouble() ?: throw Exception("Chave $chave não encontrada no corpo")
+                    Log.i("Cotacao", "Valor 'ask' recuperado: $ask")
 
                     val valorConvertido = when (par) {
                         "USD-BRL" -> valorAConverter * ask
@@ -111,14 +130,13 @@ class ConversionActivity : AppCompatActivity() {
                         "BRL-BTC" -> valorAConverter / ask
                         "BTC-USD" -> valorAConverter * ask
                         "USD-BTC" -> valorAConverter / ask
-                        else -> return@launch
+                        else -> valorAConverter // Caso moedas iguais (já tratado no btn)
                     }
+                    
+                    Log.i("Cotacao", "Valor original: $valorAConverter ($moedaOrigem) -> Convertido: $valorConvertido ($moedaDestino)")
 
                     val novaOrigem  = walletOrigem - valorAConverter
                     val novaDestino = walletDestino + valorConvertido
-
-                    val moedaOrigem  = par.split("-")[0]
-                    val moedaDestino = par.split("-")[1]
 
                     walletReais    = when (moedaOrigem)  { "BRL" -> novaOrigem;  else -> walletReais    }
                                     .let { if (moedaDestino == "BRL") novaDestino else it }
@@ -127,13 +145,19 @@ class ConversionActivity : AppCompatActivity() {
                     walletBitcoins = when (moedaOrigem)  { "BTC" -> novaOrigem;  else -> walletBitcoins }
                                     .let { if (moedaDestino == "BTC") novaDestino else it }
 
-                    progressBar.visibility = View.GONE
+                    Log.i("Cotacao", "Novos saldos -> R$: $walletReais, US$: $walletDolares, BTC: $walletBitcoins")
 
+                    Toast.makeText(this@ConversionActivity, "Conversão realizada!", Toast.LENGTH_SHORT).show()
+                    
                     val intent = Intent()
                     intent.putExtra("reais",    walletReais)
                     intent.putExtra("dolares",  walletDolares)
                     intent.putExtra("bitcoins", walletBitcoins)
                     setResult(RESULT_OK, intent)
+                    finish()
+                } else {
+                    Log.e("Cotacao", "Erro na API: ${response.code()} - ${response.message()}")
+                    Toast.makeText(this@ConversionActivity, "Erro no servidor da API.", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 Log.e("CotacaoController", "Erro ao converter", e)
