@@ -10,10 +10,17 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class ConversionActivity : AppCompatActivity() {
+
+    private lateinit var progressBar: ProgressBar
+    private lateinit var AwesomeAPI: AwesomeAPI
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_conversion)
+
+        progressBar = findViewById(R.id.progressBar)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -28,19 +35,24 @@ class ConversionActivity : AppCompatActivity() {
         api = retrofit.create(AwesomeAPI::class.java)
     }
 
-    suspend fun getCotacao(par: String): Double? {
-    return try {
-        val response = api.getCotacao(par)
-        val chave = par.replace("-", "")
+    fun getCotacao(par: String) {
 
-        if (response.isSuccessful) {
-            response.body()?.get(chave)?.ask?.toDouble()
-        } else {
-            null
+        progressBar.visibility = View.VISIBLE
+
+        lifecycleScope.launch {
+            try {
+                val response = api.getCotacao(par)
+                val chave = par.replace("-", "")
+
+                if (response.isSuccessful) {
+                    val ask = response.body()?.get(chave)?.ask?.toDouble()
+
+                    progressBar.visibility = View.GONE
+                }
+            } catch (e: Exception) {
+                Log.e("CotacaoController", "Erro ao buscar cotação", e)
+            }
         }
-    } catch (e: Exception) {
-        null
     }
-}
 
 }
