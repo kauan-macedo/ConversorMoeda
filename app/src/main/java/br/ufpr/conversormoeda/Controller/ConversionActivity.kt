@@ -19,6 +19,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import android.widget.Toast
 import android.content.Intent
+import android.widget.EditText
 
 class ConversionActivity : AppCompatActivity() {
 
