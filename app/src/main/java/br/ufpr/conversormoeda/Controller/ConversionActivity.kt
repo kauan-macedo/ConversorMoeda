@@ -115,7 +115,8 @@ class ConversionActivity : AppCompatActivity() {
                     else -> par
                 }
 
-                val response = withContext(Dispatchers.IO){ api.getCotacao(parChamada) }
+                var response: ExchangeResponse = ExchangeResponse("5")
+                //val response = withContext(Dispatchers.IO){ api.getCotacao(parChamada) }
                 val chave = parChamada.replace("-", "")
 
                 //if (response.isSuccessful) {
