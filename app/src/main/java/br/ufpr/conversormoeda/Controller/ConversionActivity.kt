@@ -21,6 +21,7 @@ import android.widget.Toast
 import android.content.Intent
 import android.widget.EditText
 
+
 class ConversionActivity : AppCompatActivity() {
 
     private lateinit var progressBar: ProgressBar
@@ -29,11 +30,18 @@ class ConversionActivity : AppCompatActivity() {
     private lateinit var spinnerTarget: Spinner
     private lateinit var etValue: EditText
 
+    private var walletReais = 0.0
+    private var walletDolares = 0.0
+    private var walletBitcoins = 0.0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_conversion)
 
+        walletReais    = intent.getDoubleExtra("reais", 0.0)
+        walletDolares  = intent.getDoubleExtra("dolares", 0.0)
+        walletBitcoins = intent.getDoubleExtra("bitcoins", 0.0)
         progressBar = findViewById(R.id.progressBar)
         spinnerSource = findViewById(R.id.spinnerSource)
         spinnerTarget = findViewById(R.id.spinnerTarget)
@@ -66,9 +74,11 @@ class ConversionActivity : AppCompatActivity() {
 
         val valorAConverter = etValue.text.toString().toDouble()
 
-        converter(par, moedaOrigem, moedaDestino, valorAConverter)
-    }
+        val walletOrigem  = when (moedaOrigem)  { "BRL" -> walletReais; "USD" -> walletDolares; else -> walletBitcoins }
+        val walletDestino = when (moedaDestino) { "BRL" -> walletReais; "USD" -> walletDolares; else -> walletBitcoins }
 
+        converter(par, walletOrigem, walletDestino, valorAConverter)
+    }
 
     fun converter(par: String, walletOrigem: Double, walletDestino: Double, valorAConverter: Double) {
 
@@ -97,35 +107,40 @@ class ConversionActivity : AppCompatActivity() {
                     val valorConvertido = when (par) {
                         "USD-BRL" -> valorAConverter * ask
                         "BRL-USD" -> valorAConverter / ask
-
                         "BTC-BRL" -> valorAConverter * ask
                         "BRL-BTC" -> valorAConverter / ask
-
                         "BTC-USD" -> valorAConverter * ask
                         "USD-BTC" -> valorAConverter / ask
-
                         else -> return@launch
                     }
 
                     val novaOrigem  = walletOrigem - valorAConverter
                     val novaDestino = walletDestino + valorConvertido
 
+                    val moedaOrigem  = par.split("-")[0]
+                    val moedaDestino = par.split("-")[1]
+
+                    walletReais    = when (moedaOrigem)  { "BRL" -> novaOrigem;  else -> walletReais    }
+                                    .let { if (moedaDestino == "BRL") novaDestino else it }
+                    walletDolares  = when (moedaOrigem)  { "USD" -> novaOrigem;  else -> walletDolares  }
+                                    .let { if (moedaDestino == "USD") novaDestino else it }
+                    walletBitcoins = when (moedaOrigem)  { "BTC" -> novaOrigem;  else -> walletBitcoins }
+                                    .let { if (moedaDestino == "BTC") novaDestino else it }
+
                     progressBar.visibility = View.GONE
-                    tvWalletOrigem.text = novaOrigem.toString()
-                    tvWalletDestino.text = novaDestino.toString()
 
                     val intent = Intent()
-                    intent.putExtra("walletOrigem", novaOrigem)
-                    intent.putExtra("walletDestino", novaDestino)
+                    intent.putExtra("reais",    walletReais)
+                    intent.putExtra("dolares",  walletDolares)
+                    intent.putExtra("bitcoins", walletBitcoins)
                     setResult(RESULT_OK, intent)
                 }
             } catch (e: Exception) {
                 Log.e("CotacaoController", "Erro ao converter", e)
-                Toast.makeText(this@MainActivity, "Erro ao buscar cotação.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ConversionActivity, "Erro ao buscar cotação.", Toast.LENGTH_SHORT).show()
             } finally {
                 progressBar.visibility = View.GONE
             }
         }
     }
-
 }
