@@ -1,18 +1,25 @@
 package br.ufpr.conversormoeda.Controller
 
 import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.ProgressBar
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import br.ufpr.conversormoeda.R
+import br.ufpr.conversormoeda.model.AwesomeAPI
+import br.ufpr.conversormoeda.model.ExchangeResponse
+import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class ConversionActivity : AppCompatActivity() {
 
     private lateinit var progressBar: ProgressBar
-    private lateinit var AwesomeAPI: AwesomeAPI
+    private lateinit var api: AwesomeAPI
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +43,6 @@ class ConversionActivity : AppCompatActivity() {
     }
 
     fun getCotacao(par: String) {
-
         progressBar.visibility = View.VISIBLE
 
         lifecycleScope.launch {
@@ -46,13 +52,13 @@ class ConversionActivity : AppCompatActivity() {
 
                 if (response.isSuccessful) {
                     val ask = response.body()?.get(chave)?.ask?.toDouble()
-
-                    progressBar.visibility = View.GONE
+                    Log.i("Cotacao", "Valor recuperado: $ask")
                 }
+                progressBar.visibility = View.GONE
             } catch (e: Exception) {
                 Log.e("CotacaoController", "Erro ao buscar cotação", e)
+                progressBar.visibility = View.GONE
             }
         }
     }
-
 }

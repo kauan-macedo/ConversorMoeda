@@ -4,9 +4,7 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
 
-class AwesomeAPI {
-    @GET("json/last/{moedas}")
-    suspend fun getCotacao(
-        @Path("moedas") moedas: String
-    ): Response<Map<String, CotacaoResponse>>
+interface AwesomeAPI {
+    @GET("last/{pair}")
+    suspend fun getCotacao(@Path("pair") pair: String): Response<Map<String, ExchangeResponse>>
 }

@@ -1,5 +1,5 @@
 package br.ufpr.conversormoeda.model
 
-class ExchangeResponse {
+data class ExchangeResponse(
     val ask: String
-}
+)
