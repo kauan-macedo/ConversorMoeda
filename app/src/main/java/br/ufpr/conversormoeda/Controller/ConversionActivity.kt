@@ -20,6 +20,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import android.widget.Toast
 import android.content.Intent
 import android.widget.EditText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 
 class ConversionActivity : AppCompatActivity() {
@@ -113,14 +115,14 @@ class ConversionActivity : AppCompatActivity() {
                     else -> par
                 }
 
-                val response = api.getCotacao(parChamada)
+                val response = withContext(Dispatchers.IO){ api.getCotacao(parChamada) }
                 val chave = parChamada.replace("-", "")
 
-                if (response.isSuccessful) {
-                    val body = response.body()
-                    Log.i("Cotacao", "Resposta API: $body")
+                //if (response.isSuccessful) {
+                    //val body = response.body()
+                    //Log.i("Cotacao", "Resposta API: $body")
                     
-                    val ask = body?.get(chave)?.ask?.toDouble() ?: throw Exception("Chave $chave não encontrada no corpo")
+                    val ask = response.ask.toDouble() //throw Exception("Chave $chave não encontrada no corpo")
                     Log.i("Cotacao", "Valor 'ask' recuperado: $ask")
 
                     val valorConvertido = when (par) {
@@ -155,10 +157,10 @@ class ConversionActivity : AppCompatActivity() {
                     intent.putExtra("bitcoins", walletBitcoins)
                     setResult(RESULT_OK, intent)
                     finish()
-                } else {
-                    Log.e("Cotacao", "Erro na API: ${response.code()} - ${response.message()}")
-                    Toast.makeText(this@ConversionActivity, "Erro no servidor da API.", Toast.LENGTH_SHORT).show()
-                }
+                //} else {
+                //    Log.e("Cotacao", "Erro na API: ${response.code()} - ${response.message()}")
+                //    Toast.makeText(this@ConversionActivity, "Erro no servidor da API.", Toast.LENGTH_SHORT).show()
+                //}
             } catch (e: Exception) {
                 Log.e("CotacaoController", "Erro ao converter", e)
                 Toast.makeText(this@ConversionActivity, "Erro ao buscar cotação.", Toast.LENGTH_SHORT).show()
