@@ -3,7 +3,9 @@ package br.ufpr.conversormoeda.Controller
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.ProgressBar
+import android.widget.Spinner
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -20,6 +22,8 @@ class ConversionActivity : AppCompatActivity() {
 
     private lateinit var progressBar: ProgressBar
     private lateinit var api: AwesomeAPI
+    private lateinit var spinnerSource: Spinner
+    private lateinit var spinnerTarget: Spinner
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +31,14 @@ class ConversionActivity : AppCompatActivity() {
         setContentView(R.layout.activity_conversion)
 
         progressBar = findViewById(R.id.progressBar)
+        spinnerSource = findViewById(R.id.spinnerSource)
+        spinnerTarget = findViewById(R.id.spinnerTarget)
+
+        val moedas = arrayOf("BRL", "USD", "BTC")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, moedas)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerSource.adapter = adapter
+        spinnerTarget.adapter = adapter
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
